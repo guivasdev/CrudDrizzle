@@ -6,6 +6,7 @@ import {
   NavigatorScreenParams,
 } from "@react-navigation/native"
 import { NativeStackScreenProps } from "@react-navigation/native-stack"
+import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite"
 
 // Demo Tab Navigator types
 export type DemoTabParamList = {
@@ -37,4 +38,5 @@ export type DemoTabScreenProps<T extends keyof DemoTabParamList> = CompositeScre
 
 export interface NavigationProps extends Partial<
   ComponentProps<typeof NavigationContainer<AppStackParamList>>
+
 > {}

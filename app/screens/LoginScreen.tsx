@@ -1,4 +1,4 @@
-import React, { FC, useState } from "react"
+import React, { FC } from "react"
 import { ViewStyle, TextStyle } from "react-native"
 import { TextInput, Button, Card } from "react-native-paper"
 import type { AppStackScreenProps } from "@/navigators/navigationTypes"
@@ -6,23 +6,25 @@ import { Screen } from "@/components/Screen"
 import { Text } from "@/components/Text"
 import { useAppTheme } from "@/theme/context"
 import type { ThemedStyle } from "@/theme/types"
- import { useNavigation } from "@react-navigation/native"
+import { useDatabase } from "@/context/DatabaseContext"
 
 interface LoginScreenProps extends AppStackScreenProps<"Login"> { }
 
 export const LoginScreen: FC<LoginScreenProps> = ({ navigation }) => {
   const { themed, theme } = useAppTheme()
+  const { createUser, searchUser, success, error, userNameSearch, userPassSearch, setUserNameSearch, setUserPassSearch } = useDatabase();
 
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
+  const handleLogin = async () => {
+    try {
+      const searchUserResult = await searchUser();
+      if (searchUserResult)
+        navigation.navigate("Home");
 
-  const handleLogin = () => {
-    console.log("Usuário:", username)
-    console.log("Senha:", password)
-    navigation.navigate("Home")
-    
+    } catch (error) {
+      alert(error);
+    }
+
   }
-
   return (
     <Screen style={themed($root)} contentContainerStyle={{ flex: 1 }} preset="fixed" safeAreaEdges={["top", "bottom"]}>
       <Card style={themed($card)} >
@@ -30,8 +32,8 @@ export const LoginScreen: FC<LoginScreenProps> = ({ navigation }) => {
 
         <TextInput
           label="Nome de usuario"
-          value={username}
-          onChangeText={setUsername}
+          value={userNameSearch}
+          onChangeText={setUserNameSearch}
           mode="outlined"
           style={themed($input)}
           activeOutlineColor={theme.colors.tint}
@@ -40,8 +42,8 @@ export const LoginScreen: FC<LoginScreenProps> = ({ navigation }) => {
 
         <TextInput
           label="Senha"
-          value={password}
-          onChangeText={setPassword}
+          value={userPassSearch}
+          onChangeText={setUserPassSearch}
           mode="outlined"
           style={themed($input)}
           activeOutlineColor={theme.colors.tint}
@@ -52,11 +54,21 @@ export const LoginScreen: FC<LoginScreenProps> = ({ navigation }) => {
           mode="contained"
           onPress={handleLogin}
           style={themed($button)}
-          labelStyle={{ fontSize: 22,padding:3, letterSpacing:2 }}
+          labelStyle={{ fontSize: 22, padding: 3, letterSpacing: 2 }}
           uppercase={true}
           buttonColor={theme.colors.tint}
         >
           ENTRAR
+        </Button>
+        <Button
+          mode="contained"
+          onPress={() => createUser()}
+          style={themed($button)}
+          labelStyle={{ fontSize: 22, padding: 3, letterSpacing: 2 }}
+          uppercase={true}
+          buttonColor={theme.colors.tint}
+        >
+          insert
         </Button>
       </Card>
     </Screen>
@@ -71,23 +83,22 @@ const $root: ThemedStyle<ViewStyle> = (theme) => ({
   justifyContent: "space-around",
 })
 const $card: ThemedStyle<ViewStyle> = (theme) => ({
-  flex:1,
+  flex: 1,
   padding: theme.spacing.lg,
   borderRadius: theme.spacing.md,
-  elevation: 2, 
-  justifyContent:'space-around'
-  
+  elevation: 2,
+  justifyContent: 'space-around'
 })
 
 const $title: ThemedStyle<TextStyle> = (theme) => ({
   marginBottom: theme.spacing.lg,
   textAlign: "center",
   lineHeight: theme.spacing.xxxl,
-  letterSpacing:4,
+  letterSpacing: 4,
   textTransform: "uppercase",
   fontWeight: "bold",
   color: theme.colors.text,
-  fontSize:38
+  fontSize: 38
 })
 
 const $input: ThemedStyle<ViewStyle> = (theme) => ({
@@ -105,7 +116,4 @@ const $button: ThemedStyle<ViewStyle> = (theme) => ({
   shadowOpacity: 0.25,
   shadowRadius: 3.84,
   elevation: 5,
-  
-  
-  
 })
