@@ -7,10 +7,16 @@ import migrations from '../../drizzle/migrations';
 import { createContext, FC, PropsWithChildren, useContext, useEffect, useState } from "react"
 import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 
+export interface User {
+  id: number
+  userNameSearch: string
+  userPassSearch: string
+  adminUser: boolean
+}
 export type DatabaseContextType = {
-  searchUserLogin: () => Promise<any>
-  searchUser: () => Promise<any>
-  createUser: () => Promise<any>
+  searchUserLogin: () => Promise<Array<User>>
+  searchUser: () => Promise<Array<User>>
+  createUser: () => Promise<Array<User>>
   userNameSearch: any,
   setUserNameSearch: any,
   userPassSearch: any,
@@ -40,7 +46,7 @@ export const DatabaseProvider: FC<PropsWithChildren<DatabaseProviderProps>> = ({
 
     const insertResult = await db.insert(usersTable).values(
       { nameUser: userNameSearch, passUSer: userPassSearch, adminUser: adminUser })
-    return "Usuário criado com sucesso! "
+    return []
   }
   const searchUser = async () => {
     if (!userNameSearch || !userPassSearch) throw new Error("Insira valores válidos!");
@@ -52,7 +58,8 @@ export const DatabaseProvider: FC<PropsWithChildren<DatabaseProviderProps>> = ({
     })
       .from(usersTable)
 
-      return getResult
+
+    return getResult
   }
 
   const searchUserLogin = async () => {

@@ -7,14 +7,8 @@ import { Text } from "@/components/Text"
 import { Checkbox } from "@/components/Toggle/Checkbox"
 import { useAppTheme } from "@/theme/context"
 import type { ThemedStyle } from "@/theme/types"
-import { useDatabase } from "@/context/DatabaseContext"
+import { useDatabase, User } from "@/context/DatabaseContext"
 
-interface User {
-  id: string
-  username: string
-  password: string
-  isAdmin: boolean
-}
 
 interface HomeScreenProps extends AppStackScreenProps<"Home"> { }
 
@@ -24,7 +18,7 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
 
   // Estados para o formulário
   const [isModalVisible, setIsModalVisible] = useState(false)
-  const [users, setUsers] = useState<User[]>([])
+  const [usersG, setUsers] = useState<User[]>([])
 
   const addUser = async () => {
 
@@ -37,8 +31,20 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
     const fetchUsers = async () => {
       try {
         const users = await searchUser();
-        console.log("Usuários recuperados:", users);
-        setUsers(users);
+        for (let index = 0; index < users.length; index++) {
+          console.log(
+            setUsers(prevUsers => [
+              ...prevUsers,
+              {
+                id: users[index].id,
+                userNameSearch: users[index].userNameSearch,
+                userPassSearch: users[index].userPassSearch,
+                adminUser: users[index].adminUser,
+              }])
+          )
+
+        }
+
       } catch (error) {
         console.error("Erro ao buscar usuários:", error);
       }
@@ -52,19 +58,31 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
     <Provider>
       <Screen style={themed($root)} preset="fixed" safeAreaEdges={["top", "bottom"]}>
         <Text preset="heading" text="Gerenciar Usuários" style={themed($title)} />
-
+        <Button onPress={() => console.log("ksadpkqlwkdç:  ", usersG)}>a</Button>
         <FlatList
-          data={users}
-          keyExtractor={(item) => item.id}
+          data={usersG}
+          showsVerticalScrollIndicator={false}
+          showsHorizontalScrollIndicator={false}
+          keyExtractor={(item) => String(item.id)}
           renderItem={({ item }) => (
             <Card style={themed($userItem)}>
               <Card.Content style={themed($userRow)}>
                 <View style={{ flex: 1 }}>
-                  <Text text={item.username} weight="bold" />
-                  <Text text={`Senha: ${item.password}`} size="xs" style={{ opacity: 0.6 }} />
+                  <Text text={item.userNameSearch} weight="bold" />
+                  <Text text={`Senha: ${item.userPassSearch}`} size="xs" style={{ opacity: 0.6 }} />
                 </View>
-                <View style={[themed($adminStatus), item.isAdmin && { backgroundColor: "#4CAF50" }]}>
-                  <Text text={item.isAdmin ? "ADMIN" : "USER"} size="xxs" style={themed($adminText)} />
+
+                <View
+                  style={[
+                    themed($adminStatus),
+                    item.adminUser && { backgroundColor: "#4CAF50" },
+                  ]}
+                >
+                  <Text
+                    text={item.adminUser ? "ADMIN" : "USER"}
+                    size="xxs"
+                    style={themed($adminText)}
+                  />
                 </View>
               </Card.Content>
             </Card>
@@ -74,7 +92,6 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
           }
           contentContainerStyle={{ paddingBottom: 100 }}
         />
-
         <Portal>
           <Modal
             visible={isModalVisible}
