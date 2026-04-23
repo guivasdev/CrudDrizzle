@@ -12,11 +12,11 @@ interface LoginScreenProps extends AppStackScreenProps<"Login"> { }
 
 export const LoginScreen: FC<LoginScreenProps> = ({ navigation }) => {
   const { themed, theme } = useAppTheme()
-  const { createUser, searchUser, success, error, userNameSearch, userPassSearch, setUserNameSearch, setUserPassSearch } = useDatabase();
+  const { createUser, searchUserLogin, success, error, userNameSearch, userPassSearch, setUserNameSearch, setUserPassSearch } = useDatabase();
 
   const handleLogin = async () => {
     try {
-      const searchUserResult = await searchUser();
+      const searchUserResult = await searchUserLogin();
       if (searchUserResult)
         navigation.navigate("Home");
 

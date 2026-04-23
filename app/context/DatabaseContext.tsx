@@ -5,12 +5,12 @@ import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
 import migrations from '../../drizzle/migrations';
 
 import { createContext, FC, PropsWithChildren, useContext, useEffect, useState } from "react"
+import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 
-import * as SQLite from 'expo-sqlite';
-import { drizzle } from 'drizzle-orm/expo-sqlite';
 export type DatabaseContextType = {
+  searchUserLogin: () => Promise<any>
   searchUser: () => Promise<any>
-  createUser: () => void
+  createUser: () => Promise<any>
   userNameSearch: any,
   setUserNameSearch: any,
   userPassSearch: any,
@@ -18,30 +18,44 @@ export type DatabaseContextType = {
   adminUser?: boolean,
   success: boolean,
   error: Error | undefined,
+  setAdminUser: any
 }
 
 export const DatabaseContext = createContext<DatabaseContextType | null>(null)
 
 export interface DatabaseProviderProps {
+  db: ExpoSQLiteDatabase<Record<string, never>>
 }
 
-export const DatabaseProvider: FC<PropsWithChildren<DatabaseProviderProps>> = ({ children }) => {
+export const DatabaseProvider: FC<PropsWithChildren<DatabaseProviderProps>> = ({ children, db }) => {
   const [userNameSearch, setUserNameSearch] = useState("")
   const [userPassSearch, setUserPassSearch] = useState("")
   const [adminUser, setAdminUser] = useState(false)
 
-  const expo = SQLite.openDatabaseSync('db.db');
-  const db = drizzle(expo);
   const { success, error } = useMigrations(db, migrations);
 
 
   const createUser = async () => {
+    if (!userNameSearch || !userPassSearch) throw new Error("Insira valores válidos!");
 
     const insertResult = await db.insert(usersTable).values(
-      { nameUser: 'gui', passUSer: '123', adminUser: true })
+      { nameUser: userNameSearch, passUSer: userPassSearch, adminUser: adminUser })
+    return "Usuário criado com sucesso! "
+  }
+  const searchUser = async () => {
+    if (!userNameSearch || !userPassSearch) throw new Error("Insira valores válidos!");
+    const getResult = await db.select({
+      id: usersTable.id,
+      userNameSearch: usersTable.nameUser,
+      userPassSearch: usersTable.passUSer,
+      adminUser: usersTable.adminUser
+    })
+      .from(usersTable)
+
+      return getResult
   }
 
-  const searchUser = async () => {
+  const searchUserLogin = async () => {
 
     if (!userNameSearch || !userPassSearch) throw new Error("Insira valores válidos!");
 
@@ -60,12 +74,14 @@ export const DatabaseProvider: FC<PropsWithChildren<DatabaseProviderProps>> = ({
     return getResult
   }
   const value = {
+    searchUserLogin,
     searchUser,
     userNameSearch,
     setUserNameSearch,
     userPassSearch,
     setUserPassSearch,
     adminUser,
+    setAdminUser,
     success,
     error,
     createUser,

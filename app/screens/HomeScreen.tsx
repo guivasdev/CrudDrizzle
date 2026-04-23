@@ -1,4 +1,4 @@
-import React, { FC, useState } from "react"
+import React, { FC, useEffect, useState } from "react"
 import { View, ViewStyle, TextStyle, FlatList, ScrollView } from "react-native"
 import { TextInput, Button, Card, Portal, Modal, FAB, Provider } from "react-native-paper"
 import type { AppStackScreenProps } from "@/navigators/navigationTypes"
@@ -7,7 +7,7 @@ import { Text } from "@/components/Text"
 import { Checkbox } from "@/components/Toggle/Checkbox"
 import { useAppTheme } from "@/theme/context"
 import type { ThemedStyle } from "@/theme/types"
-// import { useNavigation } from "@react-navigation/native"
+import { useDatabase } from "@/context/DatabaseContext"
 
 interface User {
   id: string
@@ -16,104 +16,107 @@ interface User {
   isAdmin: boolean
 }
 
-interface HomeScreenProps extends AppStackScreenProps<"Home"> {}
+interface HomeScreenProps extends AppStackScreenProps<"Home"> { }
 
 export const HomeScreen: FC<HomeScreenProps> = () => {
   const { themed, theme } = useAppTheme()
+  const { searchUser, createUser, userNameSearch, userPassSearch, setUserNameSearch, setUserPassSearch, adminUser, setAdminUser, success, error } = useDatabase();
 
   // Estados para o formulário
   const [isModalVisible, setIsModalVisible] = useState(false)
   const [users, setUsers] = useState<User[]>([])
-  const [username, setUsername] = useState("")
-  const [password, setPassword] = useState("")
-  const [isAdmin, setIsAdmin] = useState(false)
 
-  const addUser = () => {
-    if (username.trim() === "" || password.trim() === "") return
+  const addUser = async () => {
 
-    const newUser: User = {
-      id: Date.now().toString(),
-      username,
-      password,
-      isAdmin,
-    }
+    const getResult = await createUser();
+    alert(getResult)
 
-    setUsers([...users, newUser])
-    // Limpa os campos
-    setUsername("")
-    setPassword("")
-    setIsAdmin(false)
-    setIsModalVisible(false)
   }
 
-  return (<Provider>
-    <Screen style={themed($root)} preset="fixed" safeAreaEdges={["top", "bottom"]}>
-      <Text preset="heading" text="Gerenciar Usuários" style={themed($title)} />
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const users = await searchUser();
+        console.log("Usuários recuperados:", users);
+        setUsers(users);
+      } catch (error) {
+        console.error("Erro ao buscar usuários:", error);
+      }
+    };
 
-      <FlatList
-        data={users}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <Card style={themed($userItem)}>
-            <Card.Content style={themed($userRow)}>
-              <View style={{ flex: 1 }}>
-                <Text text={item.username} weight="bold" />
-                <Text text={`Senha: ${item.password}`} size="xs" style={{ opacity: 0.6 }} />
-              </View>
-              <View style={[themed($adminStatus), item.isAdmin && { backgroundColor: "#4CAF50" }]}>
-                <Text text={item.isAdmin ? "ADMIN" : "USER"} size="xxs" style={themed($adminText)} />
-              </View>
-            </Card.Content>
-          </Card>
-        )}
-        ListEmptyComponent={
-          <Text text="Nenhum usuário na lista" style={themed($emptyText)} />
-        }
-        contentContainerStyle={{ paddingBottom: 100 }}
-      />
+    fetchUsers();
+  }, []);
 
-      <Portal>
-        <Modal
-          visible={isModalVisible}
-          onDismiss={() => setIsModalVisible(false)}
-          contentContainerStyle={themed($modalContainer)}
-        >
-          <ScrollView>
-            <Text preset="subheading" text="Novo Usuário" style={{ marginBottom: theme.spacing.md }} />
-            
-            <TextInput
-              label="Nome de usuário"
-              value={username}
-              onChangeText={setUsername}
-              mode="outlined"
-              style={themed($input)}
-              activeOutlineColor={theme.colors.tint}
-            />
-            <TextInput
-              label="Senha"
-              value={password}
-              onChangeText={setPassword}
-              mode="outlined"
-              secureTextEntry
-              style={themed($input)}
-              activeOutlineColor={theme.colors.tint}
-            />
-            <Checkbox 
-              value={isAdmin} 
-              onValueChange={setIsAdmin} 
-              label="É Administrador?" 
-              containerStyle={themed($checkboxContainer)}
-            />
-            <Button 
-              mode="contained" 
-              onPress={addUser} 
-              buttonColor={theme.colors.tint} 
-              style={themed($button)}
-            >
-              SALVAR
-            </Button>
-          </ScrollView>
-        </Modal>
+
+  return (
+    <Provider>
+      <Screen style={themed($root)} preset="fixed" safeAreaEdges={["top", "bottom"]}>
+        <Text preset="heading" text="Gerenciar Usuários" style={themed($title)} />
+
+        <FlatList
+          data={users}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => (
+            <Card style={themed($userItem)}>
+              <Card.Content style={themed($userRow)}>
+                <View style={{ flex: 1 }}>
+                  <Text text={item.username} weight="bold" />
+                  <Text text={`Senha: ${item.password}`} size="xs" style={{ opacity: 0.6 }} />
+                </View>
+                <View style={[themed($adminStatus), item.isAdmin && { backgroundColor: "#4CAF50" }]}>
+                  <Text text={item.isAdmin ? "ADMIN" : "USER"} size="xxs" style={themed($adminText)} />
+                </View>
+              </Card.Content>
+            </Card>
+          )}
+          ListEmptyComponent={
+            <Text text="Nenhum usuário na lista" style={themed($emptyText)} />
+          }
+          contentContainerStyle={{ paddingBottom: 100 }}
+        />
+
+        <Portal>
+          <Modal
+            visible={isModalVisible}
+            onDismiss={() => setIsModalVisible(false)}
+            contentContainerStyle={themed($modalContainer)}
+          >
+            <ScrollView>
+              <Text preset="subheading" text="Novo Usuário" style={{ marginBottom: theme.spacing.md }} />
+
+              <TextInput
+                label="Nome de usuário"
+                value={userNameSearch}
+                onChangeText={setUserNameSearch}
+                mode="outlined"
+                style={themed($input)}
+                activeOutlineColor={theme.colors.tint}
+              />
+              <TextInput
+                label="Senha"
+                value={userPassSearch}
+                onChangeText={setUserPassSearch}
+                mode="outlined"
+                secureTextEntry
+                style={themed($input)}
+                activeOutlineColor={theme.colors.tint}
+              />
+              <Checkbox
+                value={adminUser}
+                onValueChange={setAdminUser}
+                label="É Administrador?"
+                containerStyle={themed($checkboxContainer)}
+              />
+              <Button
+                mode="contained"
+                onPress={addUser}
+                buttonColor={theme.colors.tint}
+                style={themed($button)}
+              >
+                SALVAR
+              </Button>
+            </ScrollView>
+          </Modal>
 
           <FAB
             icon="plus"
@@ -122,7 +125,7 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
             color="white"
           />
         </Portal>
-    </Screen></Provider>
+      </Screen></Provider>
   )
 }
 
@@ -152,7 +155,7 @@ const $userItem: ThemedStyle<ViewStyle> = (theme) => ({
   marginBottom: theme.spacing.sm,
 })
 
-const $userRow: ThemedStyle<ViewStyle>  = (theme) => ({
+const $userRow: ThemedStyle<ViewStyle> = (theme) => ({
   flexDirection: "row",
   alignItems: "center",
   justifyContent: "space-between",

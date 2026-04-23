@@ -31,12 +31,12 @@ import { ThemeProvider } from "./theme/context"
 import { customFontsToLoad } from "./theme/typography"
 import { loadDateFnsLocale } from "./utils/formatDate"
 import * as storage from "./utils/storage"
-
 import { DatabaseProvider } from "./context/DatabaseContext"
 
-
-
 export const NAVIGATION_PERSISTENCE_KEY = "NAVIGATION_STATE"
+
+import * as SQLite from 'expo-sqlite';
+import { drizzle } from 'drizzle-orm/expo-sqlite';
 
 // Web linking configuration
 const prefix = Linking.createURL("/")
@@ -95,13 +95,15 @@ export function App() {
   }
 
 
+  const expo = SQLite.openDatabaseSync('db.db');
+  const db = drizzle(expo);
 
 
   // otherwise, we're ready to render the app
   return (
     <SafeAreaProvider initialMetrics={initialWindowMetrics}>
       <KeyboardProvider>
-        <DatabaseProvider>
+        <DatabaseProvider db={db}>
           <ThemeProvider>
             <AppNavigator
               linking={linking}
