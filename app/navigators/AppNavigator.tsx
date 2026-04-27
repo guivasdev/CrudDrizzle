@@ -37,12 +37,14 @@ const AppStack = () => {
         navigationBarColor: colors.background,
         contentStyle: {
           backgroundColor: colors.background,
-          
+
         },
       }}
     >
       <Stack.Screen name="Login" component={LoginScreen} />
+
       <Stack.Screen name="Home" component={HomeScreen} />
+
       {/** 🔥 Your screens go here */}
       {/* IGNITE_GENERATOR_ANCHOR_APP_STACK_SCREENS */}
     </Stack.Navigator>

@@ -1,182 +1,181 @@
 import React, { FC, useEffect, useState } from "react"
-import { View, ViewStyle, TextStyle, FlatList, ScrollView } from "react-native"
-import { TextInput, Button, Card, Portal, Modal, FAB, Provider } from "react-native-paper"
 import type { AppStackScreenProps } from "@/navigators/navigationTypes"
 import { Screen } from "@/components/Screen"
+import { View, StyleSheet, FlatList, TextStyle, ViewStyle } from "react-native"
+import { Card, Divider, FAB, Menu, Modal, Portal, Provider } from "react-native-paper"
 import { Text } from "@/components/Text"
-import { Checkbox } from "@/components/Toggle/Checkbox"
+import { ThemedStyle } from "@/theme/types"
 import { useAppTheme } from "@/theme/context"
-import type { ThemedStyle } from "@/theme/types"
 import { useDatabase, User } from "@/context/DatabaseContext"
-
+import { useModelAddUser } from "@/features/crud/hooks/useModelAddUser"
+import { ModelAddUser } from "@/features/crud/components/ModelAddUser"
 
 interface HomeScreenProps extends AppStackScreenProps<"Home"> { }
 
 export const HomeScreen: FC<HomeScreenProps> = () => {
-  const { themed, theme } = useAppTheme()
-  const { searchUser, createUser, userNameSearch, userPassSearch, setUserNameSearch, setUserPassSearch, adminUser, setAdminUser, success, error } = useDatabase();
+  const { themed } = useAppTheme()
 
-  // Estados para o formulário
-  const [isModalVisible, setIsModalVisible] = useState(false)
+  const [visible, setVisible] = React.useState(false);
+  const { modalVisible, setModalVisible } = useModelAddUser();
+
+  const closeMenu = () => setVisible(false);
+
+  function lidar(novoEstado: boolean) {
+    setVisible(novoEstado)
+  }
+
+
+  const { searchUser
+
+  } = useDatabase();
+
   const [usersG, setUsers] = useState<User[]>([])
 
-  const addUser = async () => {
-
-    const getResult = await createUser();
-    alert(getResult)
-
-  }
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
+        setUsers([]);
         const users = await searchUser();
         for (let index = 0; index < users.length; index++) {
-          console.log(
-            setUsers(prevUsers => [
-              ...prevUsers,
-              {
-                id: users[index].id,
-                userNameSearch: users[index].userNameSearch,
-                userPassSearch: users[index].userPassSearch,
-                adminUser: users[index].adminUser,
-              }])
-          )
+
+          setUsers(prevUsers => [
+            ...prevUsers,
+            {
+              id: users[index].id,
+              name: users[index].name,
+              password: users[index].password,
+              adminUser: users[index].adminUser,
+            }])
 
         }
-
       } catch (error) {
         console.error("Erro ao buscar usuários:", error);
       }
     };
 
+
     fetchUsers();
   }, []);
 
 
+  const handleModelUser = () => {
+    console.log(modalVisible)
+    setModalVisible(true)
+    console.log(modalVisible)
+    closeMenu()
+
+
+  }
+
   return (
     <Provider>
-      <Screen style={themed($root)} preset="fixed" safeAreaEdges={["top", "bottom"]}>
-        <Text preset="heading" text="Gerenciar Usuários" style={themed($title)} />
-        <Button onPress={() => console.log("ksadpkqlwkdç:  ", usersG)}>a</Button>
-        <FlatList
-          data={usersG}
-          showsVerticalScrollIndicator={false}
-          showsHorizontalScrollIndicator={false}
-          keyExtractor={(item) => String(item.id)}
-          renderItem={({ item }) => (
-            <Card style={themed($userItem)}>
-              <Card.Content style={themed($userRow)}>
-                <View style={{ flex: 1 }}>
-                  <Text text={item.userNameSearch} weight="bold" />
-                  <Text text={`Senha: ${item.userPassSearch}`} size="xs" style={{ opacity: 0.6 }} />
-                </View>
 
-                <View
-                  style={[
-                    themed($adminStatus),
-                    item.adminUser && { backgroundColor: "#4CAF50" },
-                  ]}
-                >
-                  <Text
-                    text={item.adminUser ? "ADMIN" : "USER"}
-                    size="xxs"
-                    style={themed($adminText)}
-                  />
-                </View>
-              </Card.Content>
-            </Card>
-          )}
-          ListEmptyComponent={
-            <Text text="Nenhum usuário na lista" style={themed($emptyText)} />
-          }
-          contentContainerStyle={{ paddingBottom: 100 }}
-        />
+      <Screen contentContainerStyle={{ flex: 1 }} style={{ flex: 1, padding: 20, }}>
+
+
+        <View style={{ flex: 9, zIndex: 2 }} >
+          <Text preset="heading" text="Gerenciar Usuários" style={themed($title)}></Text>
+
+          <FlatList
+            data={usersG}
+            showsVerticalScrollIndicator={false}
+            showsHorizontalScrollIndicator={false}
+            keyExtractor={(item) => String(item.id)}
+            renderItem={({ item }) => (
+              <Card style={themed($userItem)}>
+                <Card.Content style={themed($userRow)}>
+                  <View style={{ flex: 1 }}>
+                    <Text text={item.name} weight="bold" />
+                    <Text text={`Senha: ${item.password}`} size="xs" style={{ opacity: 0.6 }} />
+                  </View>
+
+
+                  <View
+                    style={[
+                      themed($adminStatus),
+                      item.adminUser && { backgroundColor: "#4CAF50" },
+                    ]}
+                  >
+                    <Text
+                      text={item.adminUser ? "ADMIN" : "USER"}
+                      size="xxs"
+                      style={themed($adminText)}
+                    />
+                  </View>
+                </Card.Content>
+              </Card>
+            )}
+            ListEmptyComponent={
+              <Text text="Nenhum usuário na lista" style={themed($emptyText)} />
+            }
+            contentContainerStyle={{ paddingBottom: 100 }}
+          />
+        </View>
+
+        <View style={{ flex: 1, alignSelf: 'flex-end' }} >
+          <Menu
+            style={{ paddingBottom: 150, paddingRight: 10 }}
+            elevation={2}
+            visible={visible}
+            onDismiss={closeMenu}
+            anchor={
+              <FAB style={{ alignSelf: 'flex-end' }} icon="plus" onPress={() => setVisible(true)} color="white" />
+            }>
+            <Menu.Item onPress={() => handleModelUser()} title="Adicionar Usuário" />
+            <Divider style={{ padding: 1 }} />
+            <Menu.Item onPress={() => { }} title="Buscar Usuário" />
+
+          </Menu>
+        </View>
+
         <Portal>
           <Modal
-            visible={isModalVisible}
-            onDismiss={() => setIsModalVisible(false)}
-            contentContainerStyle={themed($modalContainer)}
+            visible={modalVisible}
+            onDismiss={() => setModalVisible(false)}
+
+            contentContainerStyle={{
+              position: 'relative',
+              width: '90%',
+              height: '50%',
+              flexDirection: 'row',
+              padding: 10,
+              margin: 'auto',
+              borderRadius: 15,
+            }}
           >
-            <ScrollView>
-              <Text preset="subheading" text="Novo Usuário" style={{ marginBottom: theme.spacing.md }} />
-
-              <TextInput
-                label="Nome de usuário"
-                value={userNameSearch}
-                onChangeText={setUserNameSearch}
-                mode="outlined"
-                style={themed($input)}
-                activeOutlineColor={theme.colors.tint}
-              />
-              <TextInput
-                label="Senha"
-                value={userPassSearch}
-                onChangeText={setUserPassSearch}
-                mode="outlined"
-                secureTextEntry
-                style={themed($input)}
-                activeOutlineColor={theme.colors.tint}
-              />
-              <Checkbox
-                value={adminUser}
-                onValueChange={setAdminUser}
-                label="É Administrador?"
-                containerStyle={themed($checkboxContainer)}
-              />
-              <Button
-                mode="contained"
-                onPress={addUser}
-                buttonColor={theme.colors.tint}
-                style={themed($button)}
-              >
-                SALVAR
-              </Button>
-            </ScrollView>
+            <ModelAddUser lidar={lidar} modalVisible={modalVisible} />
           </Modal>
-
-          <FAB
-            icon="plus"
-            style={themed($fab)}
-            onPress={() => setIsModalVisible(true)}
-            color="white"
-          />
         </Portal>
-      </Screen></Provider>
+      </Screen>
+
+    </Provider >
   )
 }
-
-const $root: ThemedStyle<ViewStyle> = (theme) => ({
-  flex: 1,
-  paddingHorizontal: theme.spacing.lg,
-})
 
 const $title: ThemedStyle<TextStyle> = (theme) => ({
   marginVertical: theme.spacing.lg,
   textAlign: "center",
 })
 
-const $input: ThemedStyle<ViewStyle> = (theme) => ({
-  marginBottom: theme.spacing.sm,
-})
 
-const $checkboxContainer: ThemedStyle<ViewStyle> = (theme) => ({
-  marginBottom: theme.spacing.md,
-})
 
-const $button: ThemedStyle<ViewStyle> = (theme) => ({
-  marginTop: 4,
-})
+
+
+
+
 
 const $userItem: ThemedStyle<ViewStyle> = (theme) => ({
   marginBottom: theme.spacing.sm,
 })
 
-const $userRow: ThemedStyle<ViewStyle> = (theme) => ({
+
+const $userRow: ThemedStyle<ViewStyle> = () => ({
   flexDirection: "row",
   alignItems: "center",
   justifyContent: "space-between",
 })
+
 
 const $adminStatus: ThemedStyle<ViewStyle> = (theme) => ({
   backgroundColor: theme.colors.palette.neutral300,
@@ -185,26 +184,19 @@ const $adminStatus: ThemedStyle<ViewStyle> = (theme) => ({
   borderRadius: 4,
 })
 
+
 const $adminText: ThemedStyle<TextStyle> = (theme) => ({
   color: theme.colors.text,
 })
 
-const $emptyText: ThemedStyle<TextStyle> = (theme) => ({
+
+const $emptyText: ThemedStyle<TextStyle> = () => ({
   textAlign: "center",
   opacity: 0.5,
   marginTop: 20,
 })
 
-const $fab: ThemedStyle<ViewStyle> = (theme) => ({
-  position: "absolute",
-  right: theme.spacing.lg,
-  bottom: theme.spacing.lg,
-  backgroundColor: theme.colors.tint,
-})
 
-const $modalContainer: ThemedStyle<ViewStyle> = (theme) => ({
-  backgroundColor: theme.colors.background,
-  padding: theme.spacing.lg,
-  margin: theme.spacing.lg,
-  borderRadius: theme.spacing.md,
-})
+
+
+

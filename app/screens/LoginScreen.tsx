@@ -1,4 +1,4 @@
-import React, { FC } from "react"
+import React, { FC, useEffect, useState } from "react"
 import { ViewStyle, TextStyle } from "react-native"
 import { TextInput, Button, Card } from "react-native-paper"
 import type { AppStackScreenProps } from "@/navigators/navigationTypes"
@@ -6,25 +6,55 @@ import { Screen } from "@/components/Screen"
 import { Text } from "@/components/Text"
 import { useAppTheme } from "@/theme/context"
 import type { ThemedStyle } from "@/theme/types"
-import { useDatabase } from "@/context/DatabaseContext"
+import { useDatabase, User } from "@/context/DatabaseContext"
+import { useModelSearchUser } from "@/features/crud/hooks/useModelSearchUser"
 
 interface LoginScreenProps extends AppStackScreenProps<"Login"> { }
 
 export const LoginScreen: FC<LoginScreenProps> = ({ navigation }) => {
   const { themed, theme } = useAppTheme()
-  const { createUser, searchUserLogin, success, error, userNameSearch, userPassSearch, setUserNameSearch, setUserPassSearch } = useDatabase();
+  const { name, password, setName, setPassword, searchUserLoginLocal, searchUserLocal} = useModelSearchUser()
+  const [usersG, setUsers] = useState<User[]>([])
+  const {searchUser} = useDatabase()
 
   const handleLogin = async () => {
-    try {
-      const searchUserResult = await searchUserLogin();
+   
+      const searchUserResult = await searchUserLoginLocal()
       if (searchUserResult)
         navigation.navigate("Home");
-
-    } catch (error) {
-      alert(error);
-    }
+      else
+        alert(searchUserResult)
+   
 
   }
+  
+
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        
+        const users = await searchUser();
+        for (let index = 0; index < users.length; index++) {
+
+          setUsers(prevUsers => [
+            ...prevUsers,
+            {
+              id: users[index].id,
+              name: users[index].name,
+              password: users[index].password,
+              adminUser: users[index].adminUser,
+            }])
+
+        }
+        console.log(users)
+      } catch (error) {
+        console.error("Erro ao buscar usuários:", error);
+      }
+    };
+
+
+    fetchUsers();
+  }, []);
   return (
     <Screen style={themed($root)} contentContainerStyle={{ flex: 1 }} preset="fixed" safeAreaEdges={["top", "bottom"]}>
       <Card style={themed($card)} >
@@ -32,8 +62,8 @@ export const LoginScreen: FC<LoginScreenProps> = ({ navigation }) => {
 
         <TextInput
           label="Nome de usuario"
-          value={userNameSearch}
-          onChangeText={setUserNameSearch}
+          value={name}
+          onChangeText={setName}
           mode="outlined"
           style={themed($input)}
           activeOutlineColor={theme.colors.tint}
@@ -42,8 +72,8 @@ export const LoginScreen: FC<LoginScreenProps> = ({ navigation }) => {
 
         <TextInput
           label="Senha"
-          value={userPassSearch}
-          onChangeText={setUserPassSearch}
+          value={password}
+          onChangeText={setPassword}
           mode="outlined"
           style={themed($input)}
           activeOutlineColor={theme.colors.tint}
@@ -62,7 +92,6 @@ export const LoginScreen: FC<LoginScreenProps> = ({ navigation }) => {
         </Button>
         <Button
           mode="contained"
-          onPress={() => createUser()}
           style={themed($button)}
           labelStyle={{ fontSize: 22, padding: 3, letterSpacing: 2 }}
           uppercase={true}
@@ -74,6 +103,16 @@ export const LoginScreen: FC<LoginScreenProps> = ({ navigation }) => {
     </Screen>
   )
 }
+/*   <Button
+          mode="contained"
+          onPress={() => createUser(userNameSearch, userPassSearch)}
+          style={themed($button)}
+          labelStyle={{ fontSize: 22, padding: 3, letterSpacing: 2 }}
+          uppercase={true}
+          buttonColor={theme.colors.tint}
+        >
+          insert
+        </Button> */
 
 const $root: ThemedStyle<ViewStyle> = (theme) => ({
   flex: 1,
