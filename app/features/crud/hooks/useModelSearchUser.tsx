@@ -1,4 +1,4 @@
-import { useDatabase } from "@/context/DatabaseContext";
+import { useDatabase, User } from "@/context/DatabaseContext";
 import { useState } from "react";
 
 export function useModelSearchUser() {
@@ -8,21 +8,20 @@ export function useModelSearchUser() {
     const [password, setPassword] = useState("")
     const [admin, setAdmin] = useState(false)
 
-    const { searchUser, searchUserLogin, createUser} = useDatabase();
+    const { searchUser, searchUserLogin } = useDatabase();
 
-    const searchUserLocal = async () => {
-        if (!name || !password) throw new Error("Insira valores válidos para adicionar novo usuário!");
+    const searchAllUsers = async (): Promise<User[]> => {
         const response = await searchUser();
         console.log(":::", response)
+        return response
     }
 
     const searchUserLoginLocal = async (): Promise<boolean> => {
         if (!name || !password) throw new Error("Insira valores válidos para procurar um usuário!");
 
         try {
-            const response = await searchUserLogin(name, password);
-            console.log(":::", response);
-
+            const teste = await searchUserLogin(name, password);
+            console.log(teste)
             return true
         } catch (error) {
             console.error(error);
@@ -39,7 +38,7 @@ export function useModelSearchUser() {
         setName,
         setPassword,
         setAdmin,
-        searchUserLocal,
+        searchAllUsers,
         searchUserLoginLocal
     }
 }

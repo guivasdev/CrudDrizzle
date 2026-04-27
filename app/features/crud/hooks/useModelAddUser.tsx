@@ -12,11 +12,9 @@ export function useModelAddUser() {
 
     const addUser = async () => {
         if (!name || !password) throw new Error("Insira valores válidos para adicionar novo usuário!");
-        const response = await createUser(name, password);
-        console.log(":::",response)
-
+        
+        await createUser(name, password, admin);
     }
-    /* */
 
     return {
         modalVisible,
@@ -28,8 +26,5 @@ export function useModelAddUser() {
         setPassword,
         setAdmin,
         addUser,
-
     }
-
-
 }

@@ -1,38 +1,48 @@
-import { ScrollView, StyleProp, TextStyle, View, ViewStyle } from "react-native"
+import { ScrollView, StyleProp, View, ViewStyle, Alert } from "react-native"
 import { useAppTheme } from "@/theme/context"
 import type { ThemedStyle } from "@/theme/types"
 import { Text } from "@/components/Text"
-import { Button, Modal, PaperProvider, TextInput } from "react-native-paper"
+import { Button, PaperProvider, TextInput } from "react-native-paper"
 import { useModelAddUser } from "../hooks/useModelAddUser"
 import { Checkbox } from "@/components/Toggle/Checkbox"
-import { Dispatch, SetStateAction } from "react"
 
 export interface ModelAddUserProps {
   style?: StyleProp<ViewStyle>
-  lidar: (novoEstado: boolean) => void
+  handleViewFather: (novoEstado: boolean) => void
   modalVisible: boolean
-
 }
-export const ModelAddUser = ({ style, lidar, modalVisible }: ModelAddUserProps) => {
+
+export const ModelAddUser = ({ handleViewFather, modalVisible }: ModelAddUserProps) => {
   const { themed, theme } = useAppTheme();
 
   const { name, setName, password, setPassword, admin, setAdmin, addUser } = useModelAddUser();
 
   const handleInput = async () => {
     await addUser();
-    alert('Usuário adiconado com sucesso!');
-    lidarhandle();
+    asyncAlert("", "Usuário adicionado com sucesso!");
     return
-
   }
-  const lidarhandle = () => {
-    lidar(!modalVisible)
+
+  const asyncAlert = (title: string, message: string) => {
+    return new Promise((resolve) => {
+      Alert.alert(
+        title,
+        message,
+        [{ text: 'OK', onPress: () => handleView(resolve) },],
+        { cancelable: false } // Required to force a button press
+
+      );
+    });
+  };
+
+  const handleView = (resolve: any) => {
+    handleViewFather(!modalVisible)
+    resolve(true)
   }
 
   return (
     <PaperProvider>
       <View style={{ flex: 1, borderRadius: 15, padding: 8, zIndex: 30, backgroundColor: theme.colors.palette.neutral500 }} >
-
         <ScrollView>
           <Text preset="subheading" text="Novo Usuário" style={{ fontWeight: "bold", marginBottom: theme.spacing.md, textAlign: 'center', fontSize: 32, lineHeight: 32 }} />
 
@@ -61,10 +71,9 @@ export const ModelAddUser = ({ style, lidar, modalVisible }: ModelAddUserProps) 
           />
           <Button
             mode="contained"
-            onPress={addUser}
             buttonColor={theme.colors.tint}
             style={themed($button)}
-            onPressIn={() => handleInput()}
+            onPress={() => handleInput()}
           >
             SALVAR
           </Button>
@@ -72,7 +81,6 @@ export const ModelAddUser = ({ style, lidar, modalVisible }: ModelAddUserProps) 
       </View>
     </PaperProvider>
   )
-
 }
 
 const $input: ThemedStyle<ViewStyle> = (theme) => ({

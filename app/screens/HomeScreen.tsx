@@ -1,44 +1,39 @@
 import React, { FC, useEffect, useState } from "react"
 import type { AppStackScreenProps } from "@/navigators/navigationTypes"
 import { Screen } from "@/components/Screen"
-import { View, StyleSheet, FlatList, TextStyle, ViewStyle } from "react-native"
+import { View, FlatList, TextStyle, ViewStyle } from "react-native"
 import { Card, Divider, FAB, Menu, Modal, Portal, Provider } from "react-native-paper"
 import { Text } from "@/components/Text"
 import { ThemedStyle } from "@/theme/types"
 import { useAppTheme } from "@/theme/context"
-import { useDatabase, User } from "@/context/DatabaseContext"
+import { User } from "@/context/DatabaseContext"
 import { useModelAddUser } from "@/features/crud/hooks/useModelAddUser"
 import { ModelAddUser } from "@/features/crud/components/ModelAddUser"
+import { useModelSearchUser } from "@/features/crud/hooks/useModelSearchUser"
 
 interface HomeScreenProps extends AppStackScreenProps<"Home"> { }
 
 export const HomeScreen: FC<HomeScreenProps> = () => {
   const { themed } = useAppTheme()
 
-  const [visible, setVisible] = React.useState(false);
-  const { modalVisible, setModalVisible } = useModelAddUser();
-
-  const closeMenu = () => setVisible(false);
-
-  function lidar(novoEstado: boolean) {
-    setVisible(novoEstado)
-  }
-
-
-  const { searchUser
-
-  } = useDatabase();
-
   const [usersG, setUsers] = useState<User[]>([])
 
+  const [visible, setVisible] = React.useState(false);
+  const closeMenu = () => setVisible(false);
+
+  const { modalVisible, setModalVisible } = useModelAddUser();
+  const { searchAllUsers } = useModelSearchUser();
+
+  const handleView = (novoEstado: boolean) => {
+    setModalVisible(novoEstado)
+  }
 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
         setUsers([]);
-        const users = await searchUser();
+        const users = await searchAllUsers();
         for (let index = 0; index < users.length; index++) {
-
           setUsers(prevUsers => [
             ...prevUsers,
             {
@@ -47,33 +42,24 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
               password: users[index].password,
               adminUser: users[index].adminUser,
             }])
-
         }
       } catch (error) {
         console.error("Erro ao buscar usuários:", error);
       }
     };
 
-
     fetchUsers();
   }, []);
 
-
+  // fecha o menu e o apaga o model de addUser
   const handleModelUser = () => {
-    console.log(modalVisible)
     setModalVisible(true)
-    console.log(modalVisible)
     closeMenu()
-
-
   }
 
   return (
     <Provider>
-
       <Screen contentContainerStyle={{ flex: 1 }} style={{ flex: 1, padding: 20, }}>
-
-
         <View style={{ flex: 9, zIndex: 2 }} >
           <Text preset="heading" text="Gerenciar Usuários" style={themed($title)}></Text>
 
@@ -89,14 +75,7 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
                     <Text text={item.name} weight="bold" />
                     <Text text={`Senha: ${item.password}`} size="xs" style={{ opacity: 0.6 }} />
                   </View>
-
-
-                  <View
-                    style={[
-                      themed($adminStatus),
-                      item.adminUser && { backgroundColor: "#4CAF50" },
-                    ]}
-                  >
+                  <View style={[themed($adminStatus), item.adminUser && { backgroundColor: "#4CAF50" },]}>
                     <Text
                       text={item.adminUser ? "ADMIN" : "USER"}
                       size="xxs"
@@ -125,7 +104,6 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
             <Menu.Item onPress={() => handleModelUser()} title="Adicionar Usuário" />
             <Divider style={{ padding: 1 }} />
             <Menu.Item onPress={() => { }} title="Buscar Usuário" />
-
           </Menu>
         </View>
 
@@ -144,11 +122,10 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
               borderRadius: 15,
             }}
           >
-            <ModelAddUser lidar={lidar} modalVisible={modalVisible} />
+            <ModelAddUser handleViewFather={handleView} modalVisible={modalVisible} />
           </Modal>
         </Portal>
       </Screen>
-
     </Provider >
   )
 }
@@ -158,24 +135,15 @@ const $title: ThemedStyle<TextStyle> = (theme) => ({
   textAlign: "center",
 })
 
-
-
-
-
-
-
-
 const $userItem: ThemedStyle<ViewStyle> = (theme) => ({
   marginBottom: theme.spacing.sm,
 })
-
 
 const $userRow: ThemedStyle<ViewStyle> = () => ({
   flexDirection: "row",
   alignItems: "center",
   justifyContent: "space-between",
 })
-
 
 const $adminStatus: ThemedStyle<ViewStyle> = (theme) => ({
   backgroundColor: theme.colors.palette.neutral300,
@@ -184,19 +152,12 @@ const $adminStatus: ThemedStyle<ViewStyle> = (theme) => ({
   borderRadius: 4,
 })
 
-
 const $adminText: ThemedStyle<TextStyle> = (theme) => ({
   color: theme.colors.text,
 })
-
 
 const $emptyText: ThemedStyle<TextStyle> = () => ({
   textAlign: "center",
   opacity: 0.5,
   marginTop: 20,
 })
-
-
-
-
-

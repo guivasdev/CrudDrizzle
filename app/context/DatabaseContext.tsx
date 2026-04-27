@@ -1,10 +1,6 @@
-
+import { createContext, FC, PropsWithChildren, useContext } from "react";
 import { usersTable } from "db/schema";
 import { and, eq } from "drizzle-orm";
-import { useMigrations } from 'drizzle-orm/expo-sqlite/migrator';
-import migrations from '../../drizzle/migrations';
-
-import { createContext, FC, PropsWithChildren, useContext, useState } from "react";
 import { ExpoSQLiteDatabase } from "drizzle-orm/expo-sqlite";
 
 export interface User {
@@ -18,10 +14,6 @@ export type DatabaseContextType = {
   searchUserLogin: (name: string, password: string) => Promise<User[]>;
   searchUser: () => Promise<User[]>;
   createUser: (name: string, password: string, admin?: boolean) => Promise<boolean>;
-  adminUser?: boolean;
-  success: boolean;
-  error: Error | undefined;
-  setAdminUser: (value: boolean) => void;
 };
 
 export const DatabaseContext = createContext<DatabaseContextType | null>(null);
@@ -32,33 +24,37 @@ export interface DatabaseProviderProps {
 
 export const DatabaseProvider: FC<PropsWithChildren<DatabaseProviderProps>> = ({ children, db }) => {
 
-  const [adminUser, setAdminUser] = useState(false);
-  const { success, error } = useMigrations(db, migrations);
-  //    const searchUserLoginLocal = async (): Promise<boolean> => {
-
   const createUser = async (name: string, password: string, admin = false): Promise<boolean> => {
-    const response = await db.insert(usersTable).values({
-      nameUser: name,
-      passUSer: password,
-      adminUser: admin
-    });
-
-    if (response)
+    try {
+      await db.insert(usersTable).values({
+        nameUser: name,
+        passUSer: password,
+        adminUser: admin
+      });
       return true
-    return false
 
-  };
+    } catch (error) {
+      console.log(error)
+      return false
+    }
+  }
 
   const searchUser = async () => {
-    return await db.select({
-      id: usersTable.id,
-      name: usersTable.nameUser,
-      password: usersTable.passUSer,
-      adminUser: usersTable.adminUser
-    }).from(usersTable);
-  };
+    try {
+      return await db.select({
+        id: usersTable.id,
+        name: usersTable.nameUser,
+        password: usersTable.passUSer,
+        adminUser: usersTable.adminUser
+      }).from(usersTable);
+    } catch (error) {
+      console.log(error)
+      return []
+    }
+  }
 
   const searchUserLogin = async (name: string, password: string) => {
+
     const result = await db.select({
       id: usersTable.id,
       name: usersTable.nameUser,
@@ -71,22 +67,17 @@ export const DatabaseProvider: FC<PropsWithChildren<DatabaseProviderProps>> = ({
         eq(usersTable.passUSer, password)
       ));
 
-    if (result.length === 0) {
+    if (result.length == 0) 
       throw new Error("Usuário não encontrado!");
-    }
-
+    
     return result;
-  };
+  }
 
   return (
     <DatabaseContext.Provider value={{
       searchUserLogin,
       searchUser,
       createUser,
-      adminUser,
-      setAdminUser,
-      success,
-      error
     }}>
       {children}
     </DatabaseContext.Provider>
