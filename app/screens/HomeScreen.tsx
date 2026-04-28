@@ -10,6 +10,8 @@ import { User } from "@/context/DatabaseContext"
 import { useModelAddUser } from "@/features/crud/hooks/useModelAddUser"
 import { ModelAddUser } from "@/features/crud/components/ModelAddUser"
 import { useModelSearchUser } from "@/features/crud/hooks/useModelSearchUser"
+import { ModelSearchUser } from "@/features/crud/components/ModelSearchUser"
+import { colors } from "@/theme/colors"
 
 interface HomeScreenProps extends AppStackScreenProps<"Home"> { }
 
@@ -21,11 +23,12 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
   const [visible, setVisible] = React.useState(false);
   const closeMenu = () => setVisible(false);
 
-  const { modalVisible, setModalVisible } = useModelAddUser();
+  const { modalVisibleAdd, setModalVisibleAdd } = useModelAddUser();
+  const { modalVisibleSearch, setModalVisibleSearch } = useModelSearchUser();
   const { searchAllUsers } = useModelSearchUser();
 
   const handleView = (novoEstado: boolean) => {
-    setModalVisible(novoEstado)
+    setModalVisibleAdd(novoEstado)
   }
 
   useEffect(() => {
@@ -52,9 +55,15 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
   }, []);
 
   // fecha o menu e o apaga o model de addUser
-  const handleModelUser = () => {
-    setModalVisible(true)
+  const handleModelAddUser = () => {
+    setModalVisibleAdd(true)
     closeMenu()
+  }
+
+  const handleModelSearchUser = () => {
+    setModalVisibleSearch(true)
+    closeMenu()
+
   }
 
   return (
@@ -101,29 +110,46 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
             anchor={
               <FAB style={{ alignSelf: 'flex-end' }} icon="plus" onPress={() => setVisible(true)} color="white" />
             }>
-            <Menu.Item onPress={() => handleModelUser()} title="Adicionar Usuário" />
+            <Menu.Item onPress={() => handleModelAddUser()} title="Adicionar Usuário" />
             <Divider style={{ padding: 1 }} />
-            <Menu.Item onPress={() => { }} title="Buscar Usuário" />
+            <Menu.Item onPress={() => handleModelSearchUser()} title="Buscar Usuário" />
           </Menu>
         </View>
 
         <Portal>
           <Modal
-            visible={modalVisible}
-            onDismiss={() => setModalVisible(false)}
+            visible={modalVisibleAdd}
+            onDismiss={() => setModalVisibleAdd(false)}
 
             contentContainerStyle={{
-              position: 'relative',
-              width: '90%',
-              height: '50%',
-              flexDirection: 'row',
-              padding: 10,
-              margin: 'auto',
-              borderRadius: 15,
+              marginTop: "auto",
+              width: "100%",
+              height: "80%",
+              backgroundColor: colors.background,
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              paddingTop: 10,
             }}
           >
-            <ModelAddUser handleViewFather={handleView} modalVisible={modalVisible} />
+            <ModelAddUser handleViewFather={handleView} modalVisible={modalVisibleAdd} />
           </Modal>
+
+          <Modal
+            visible={modalVisibleSearch}
+            onDismiss={() => setModalVisibleSearch(false)}
+            contentContainerStyle={{
+              marginTop: "auto",
+              width: "100%",
+              height: "80%",
+              backgroundColor: "white",
+              borderTopLeftRadius: 20,
+              borderTopRightRadius: 20,
+              paddingTop: 10,
+            }}
+          >
+            <ModelSearchUser />
+          </Modal>
+
         </Portal>
       </Screen>
     </Provider >

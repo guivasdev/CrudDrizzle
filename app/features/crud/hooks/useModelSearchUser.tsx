@@ -3,7 +3,7 @@ import { useState } from "react";
 
 export function useModelSearchUser() {
 
-    const [modalVisible, setModalVisible] = useState(false)
+    const [modalVisibleSearch, setModalVisibleSearch] = useState(false)
     const [name, setName] = useState("")
     const [password, setPassword] = useState("")
     const [admin, setAdmin] = useState(false)
@@ -30,11 +30,11 @@ export function useModelSearchUser() {
     };
 
     return {
-        modalVisible,
+        modalVisibleSearch,
         name,
         password,
         admin,
-        setModalVisible,
+        setModalVisibleSearch,
         setName,
         setPassword,
         setAdmin,

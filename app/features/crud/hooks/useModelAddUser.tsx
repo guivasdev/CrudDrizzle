@@ -3,7 +3,7 @@ import { useState } from "react";
 
 export function useModelAddUser() {
 
-    const [modalVisible, setModalVisible] = useState(false)
+    const [modalVisibleAdd, setModalVisibleAdd] = useState(false)
     const [name, setName] = useState("")
     const [password, setPassword] = useState("")
     const [admin, setAdmin] = useState(false)
@@ -17,11 +17,11 @@ export function useModelAddUser() {
     }
 
     return {
-        modalVisible,
+        modalVisibleAdd,
         name,
         password,
         admin,
-        setModalVisible,
+        setModalVisibleAdd,
         setName,
         setPassword,
         setAdmin,

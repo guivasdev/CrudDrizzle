@@ -13,27 +13,22 @@ export interface ModelAddUserProps {
 }
 
 export const ModelAddUser = ({ handleViewFather, modalVisible }: ModelAddUserProps) => {
-  const { themed, theme } = useAppTheme();
+  const { themed, theme } = useAppTheme()
 
-  const { name, setName, password, setPassword, admin, setAdmin, addUser } = useModelAddUser();
+  const { name, setName, password, setPassword, admin, setAdmin, addUser } = useModelAddUser()
 
   const handleInput = async () => {
-    await addUser();
-    asyncAlert("", "Usuário adicionado com sucesso!");
-    return
+    await addUser()
+    asyncAlert("", "Usuário adicionado com sucesso!")
   }
 
   const asyncAlert = (title: string, message: string) => {
     return new Promise((resolve) => {
-      Alert.alert(
-        title,
-        message,
-        [{ text: 'OK', onPress: () => handleView(resolve) },],
-        { cancelable: false } // Required to force a button press
-
-      );
-    });
-  };
+      Alert.alert(title, message, [
+        { text: "OK", onPress: () => handleView(resolve) },
+      ])
+    })
+  }
 
   const handleView = (resolve: any) => {
     handleViewFather(!modalVisible)
@@ -42,56 +37,100 @@ export const ModelAddUser = ({ handleViewFather, modalVisible }: ModelAddUserPro
 
   return (
     <PaperProvider>
-      <View style={{ flex: 1, borderRadius: 15, padding: 8, zIndex: 30, backgroundColor: theme.colors.palette.neutral500 }} >
-        <ScrollView>
-          <Text preset="subheading" text="Novo Usuário" style={{ fontWeight: "bold", marginBottom: theme.spacing.md, textAlign: 'center', fontSize: 32, lineHeight: 32 }} />
+      <View style={themed($container)}>
+        <ScrollView contentContainerStyle={themed($content)}>
 
-          <TextInput
-            label="Nome de usuário"
-            value={name}
-            onChangeText={setName}
-            mode="outlined"
-            style={themed($input)}
-            activeOutlineColor={theme.colors.tint}
+          {/* HEADER */}
+          <Text
+            text="Novo Usuário"
+            style={themed($title)}
           />
-          <TextInput
-            label="Senha"
-            value={password}
-            onChangeText={setPassword}
-            mode="outlined"
-            secureTextEntry
-            style={themed($input)}
-            activeOutlineColor={theme.colors.tint}
-          />
-          <Checkbox
-            value={admin}
-            onValueChange={setAdmin}
-            label="É Administrador?"
-            containerStyle={themed($checkboxContainer)}
-          />
-          <Button
-            mode="contained"
-            buttonColor={theme.colors.tint}
-            style={themed($button)}
-            onPress={() => handleInput()}
-          >
-            SALVAR
-          </Button>
+
+          {/* FORM */}
+          <View style={themed($section)}>
+            <TextInput
+              label="Nome de usuário"
+              value={name}
+              onChangeText={setName}
+              mode="outlined"
+              style={themed($input)}
+              activeOutlineColor={theme.colors.tint}
+            />
+
+            <TextInput
+              label="Senha"
+              value={password}
+              onChangeText={setPassword}
+              mode="outlined"
+              secureTextEntry
+              style={themed($input)}
+              activeOutlineColor={theme.colors.tint}
+            />
+          </View>
+
+          {/* CHECKBOX */}
+          <View style={themed($section)}>
+            <Checkbox
+              value={admin}
+              onValueChange={setAdmin}
+              label="É Administrador?"
+              containerStyle={themed($checkboxContainer)}
+            />
+          </View>
+
+          {/* ACTION */}
+          <View style={themed($footer)}>
+            <Button
+              mode="contained"
+              style={themed($buttonPrimary)}
+              onPress={handleInput}
+            >
+              Salvar
+            </Button>
+          </View>
+
         </ScrollView>
       </View>
     </PaperProvider>
   )
 }
 
-const $input: ThemedStyle<ViewStyle> = (theme) => ({
-  marginBottom: theme.spacing.sm,
+const $container: ThemedStyle<ViewStyle> = (theme) => ({
+  flex: 1,
+  backgroundColor: theme.colors.background,
+  borderRadius: 16,
 })
 
-const $checkboxContainer: ThemedStyle<ViewStyle> = (theme) => ({
-  marginBottom: theme.spacing.md,
-  paddingLeft: 3
+const $content: ThemedStyle<ViewStyle> = () => ({
+  padding: 20,
 })
 
-const $button: ThemedStyle<ViewStyle> = () => ({
-  marginTop: 4,
+const $title: ThemedStyle<any> = () => ({
+  fontSize: 22,
+  fontWeight: "600",
+  textAlign: "center",
+  marginBottom: 24,
+})
+
+const $section: ThemedStyle<ViewStyle> = () => ({
+  marginBottom: 20,
+})
+
+const $input: ThemedStyle<ViewStyle> = () => ({
+  marginBottom: 12,
+  height: 48,
+})
+
+const $checkboxContainer: ThemedStyle<ViewStyle> = () => ({
+  paddingLeft: 4,
+})
+
+const $footer: ThemedStyle<ViewStyle> = () => ({
+  marginTop: 10,
+})
+
+const $buttonPrimary: ThemedStyle<ViewStyle> = (theme) => ({
+  borderRadius: 12,
+  paddingVertical: 6,
+  backgroundColor: theme.colors.tint,
 })
