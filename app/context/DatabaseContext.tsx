@@ -14,6 +14,7 @@ export type DatabaseContextType = {
   searchUserLogin: (name: string, password: string) => Promise<User[]>;
   searchUser: () => Promise<User[]>;
   createUser: (name: string, password: string, admin?: boolean) => Promise<boolean>;
+  deleteUserDb: (id: number) => Promise<boolean>;
 };
 
 export const DatabaseContext = createContext<DatabaseContextType | null>(null);
@@ -67,10 +68,23 @@ export const DatabaseProvider: FC<PropsWithChildren<DatabaseProviderProps>> = ({
         eq(usersTable.passUSer, password)
       ));
 
-    if (result.length == 0) 
+    if (result.length == 0)
       throw new Error("Usuário não encontrado!");
-    
+
     return result;
+  }
+
+  const deleteUserDb = async (id: number): Promise<boolean> => {
+    try {
+      await db.delete(usersTable).where(eq(usersTable.id, id))
+
+      return true;
+    } catch (error) {
+      console.log(error)
+      return false
+
+    }
+
   }
 
   return (
@@ -78,6 +92,7 @@ export const DatabaseProvider: FC<PropsWithChildren<DatabaseProviderProps>> = ({
       searchUserLogin,
       searchUser,
       createUser,
+      deleteUserDb,
     }}>
       {children}
     </DatabaseContext.Provider>

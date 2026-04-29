@@ -1,7 +1,7 @@
 import React, { FC, useEffect, useState } from "react"
 import type { AppStackScreenProps } from "@/navigators/navigationTypes"
 import { Screen } from "@/components/Screen"
-import { View, FlatList, TextStyle, ViewStyle } from "react-native"
+import { View, FlatList, TextStyle, ViewStyle, TouchableOpacity } from "react-native"
 import { Card, Divider, FAB, Menu, Modal, Portal, Provider } from "react-native-paper"
 import { Text } from "@/components/Text"
 import { ThemedStyle } from "@/theme/types"
@@ -12,6 +12,8 @@ import { ModelAddUser } from "@/features/crud/components/ModelAddUser"
 import { useModelSearchUser } from "@/features/crud/hooks/useModelSearchUser"
 import { ModelSearchUser } from "@/features/crud/components/ModelSearchUser"
 import { colors } from "@/theme/colors"
+import { useDeleteUser } from "@/features/crud/hooks/useDeleteUser"
+import { Button } from "@/components/Button"
 
 interface HomeScreenProps extends AppStackScreenProps<"Home"> { }
 
@@ -27,6 +29,10 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
   const { modalVisibleSearch, setModalVisibleSearch } = useModelSearchUser();
   const { searchAllUsers } = useModelSearchUser();
 
+  const {  deleteUser } = useDeleteUser();
+
+  const [reload, setReload] = useState(false)
+
   const handleView = (novoEstado: boolean) => {
     setModalVisibleAdd(novoEstado)
   }
@@ -34,25 +40,23 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
   useEffect(() => {
     const fetchUsers = async () => {
       try {
-        setUsers([]);
-        const users = await searchAllUsers();
-        for (let index = 0; index < users.length; index++) {
-          setUsers(prevUsers => [
-            ...prevUsers,
-            {
-              id: users[index].id,
-              name: users[index].name,
-              password: users[index].password,
-              adminUser: users[index].adminUser,
-            }])
-        }
-      } catch (error) {
-        console.error("Erro ao buscar usuários:", error);
-      }
-    };
+        const response = await searchAllUsers()
 
-    fetchUsers();
-  }, []);
+        const formattedUsers = response.map((user) => ({
+          id: user.id,
+          name: user.name,
+          password: user.password,
+          adminUser: user.adminUser,
+        }))
+
+        setUsers(formattedUsers)
+      } catch (error) {
+        console.error("Erro ao buscar usuários:", error)
+      }
+    }
+
+    fetchUsers()
+  }, [reload])
 
   // fecha o menu e o apaga o model de addUser
   const handleModelAddUser = () => {
@@ -63,6 +67,13 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
   const handleModelSearchUser = () => {
     setModalVisibleSearch(true)
     closeMenu()
+
+  }
+  const handleSelect = async (user: User) => {
+    
+    const response = await deleteUser(user.id);
+    console.log("vamos ver... ", response)
+    setReload(prev => !prev)
 
   }
 
@@ -78,21 +89,35 @@ export const HomeScreen: FC<HomeScreenProps> = () => {
             showsHorizontalScrollIndicator={false}
             keyExtractor={(item) => String(item.id)}
             renderItem={({ item }) => (
-              <Card style={themed($userItem)}>
-                <Card.Content style={themed($userRow)}>
-                  <View style={{ flex: 1 }}>
-                    <Text text={item.name} weight="bold" />
-                    <Text text={`Senha: ${item.password}`} size="xs" style={{ opacity: 0.6 }} />
-                  </View>
-                  <View style={[themed($adminStatus), item.adminUser && { backgroundColor: "#4CAF50" },]}>
-                    <Text
-                      text={item.adminUser ? "ADMIN" : "USER"}
-                      size="xxs"
-                      style={themed($adminText)}
-                    />
-                  </View>
-                </Card.Content>
-              </Card>
+              <TouchableOpacity onLongPress={() => handleSelect(item)}>
+                <Card style={themed($userItem)}>
+                  <Card.Content style={themed($userRow)}>
+
+                    <View style={{ flex: 1 }}>
+                      <Text text={item.name} weight="bold" />
+                      <Text
+                        text={`Senha: ${item.password}`}
+                        size="xs"
+                        style={{ opacity: 0.6 }}
+                      />
+                    </View>
+
+                    <View
+                      style={[
+                        themed($adminStatus),
+                        item.adminUser && { backgroundColor: "#4CAF50" },
+                      ]}
+                    >
+                      <Text
+                        text={item.adminUser ? "ADMIN" : "USER"}
+                        size="xxs"
+                        style={themed($adminText)}
+                      />
+                    </View>
+
+                  </Card.Content>
+                </Card>
+              </TouchableOpacity>
             )}
             ListEmptyComponent={
               <Text text="Nenhum usuário na lista" style={themed($emptyText)} />
@@ -163,6 +188,7 @@ const $title: ThemedStyle<TextStyle> = (theme) => ({
 
 const $userItem: ThemedStyle<ViewStyle> = (theme) => ({
   marginBottom: theme.spacing.sm,
+
 })
 
 const $userRow: ThemedStyle<ViewStyle> = () => ({
